@@ -245,4 +245,4 @@ For support, please email support@securevault.app or create an issue on GitHub.
 
 ---
 
-Built with ❤️ in India 🇮🇳# Password-manager-Next-js
+Built with ❤️ in India 🇮🇳

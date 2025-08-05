@@ -24,10 +24,10 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    if (session) {
+    if (session && status === "authenticated") {
       router.push("/dashboard")
     }
-  }, [session, router])
+  }, [session, status, router])
 
   if (status === "loading") {
     return (

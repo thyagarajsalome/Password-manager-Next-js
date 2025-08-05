@@ -17,36 +17,45 @@ export const authOptions: AuthOptions = {
           return null
         }
 
-        const user = await db.user.findUnique({
-          where: {
-            email: credentials.email
+        try {
+          const user = await db.user.findUnique({
+            where: {
+              email: credentials.email
+            }
+          })
+
+          if (!user || !user.password) {
+            return null
           }
-        })
 
-        if (!user || !user.password) {
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          )
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            isPremium: user.isPremium,
+          }
+        } catch (error) {
+          console.error("Authorization error:", error)
           return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          isPremium: user.isPremium,
         }
       }
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -56,7 +65,7 @@ export const authOptions: AuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.sub!
         session.user.isPremium = token.isPremium as boolean
       }
@@ -66,5 +75,6 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: "/auth/signin",
     signUp: "/auth/signup"
-  }
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 }
